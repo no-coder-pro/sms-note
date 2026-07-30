@@ -9,8 +9,12 @@ import android.os.Build
 import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings
+import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.RadioButton
+import android.widget.RadioGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -19,12 +23,24 @@ import androidx.core.content.ContextCompat
 
 class MainActivity : AppCompatActivity() {
 
+    private lateinit var layoutSavedCredentials: LinearLayout
+    private lateinit var layoutEditCredentials: LinearLayout
+    private lateinit var tvSavedSummary: TextView
+    private lateinit var btnEditConfig: Button
+    private lateinit var btnCancelEdit: Button
+
     private lateinit var etTgBotToken: EditText
     private lateinit var etTgChatId: EditText
     private lateinit var etSupabaseUrl: EditText
     private lateinit var etSupabaseKey: EditText
     private lateinit var etEmailWebhook: EditText
     private lateinit var btnSaveConfig: Button
+
+    private lateinit var rgFilterMode: RadioGroup
+    private lateinit var rbFilterAll: RadioButton
+    private lateinit var rbFilterSms: RadioButton
+    private lateinit var rbFilterNotification: RadioButton
+
     private lateinit var btnGrantSmsPermission: Button
     private lateinit var btnGrantNotificationPermission: Button
     private lateinit var btnDisableBatteryOpt: Button
@@ -51,12 +67,24 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initViews() {
+        layoutSavedCredentials = findViewById(R.id.layoutSavedCredentials)
+        layoutEditCredentials = findViewById(R.id.layoutEditCredentials)
+        tvSavedSummary = findViewById(R.id.tvSavedSummary)
+        btnEditConfig = findViewById(R.id.btnEditConfig)
+        btnCancelEdit = findViewById(R.id.btnCancelEdit)
+
         etTgBotToken = findViewById(R.id.etTgBotToken)
         etTgChatId = findViewById(R.id.etTgChatId)
         etSupabaseUrl = findViewById(R.id.etSupabaseUrl)
         etSupabaseKey = findViewById(R.id.etSupabaseKey)
         etEmailWebhook = findViewById(R.id.etEmailWebhook)
         btnSaveConfig = findViewById(R.id.btnSaveConfig)
+
+        rgFilterMode = findViewById(R.id.rgFilterMode)
+        rbFilterAll = findViewById(R.id.rbFilterAll)
+        rbFilterSms = findViewById(R.id.rbFilterSms)
+        rbFilterNotification = findViewById(R.id.rbFilterNotification)
+
         btnGrantSmsPermission = findViewById(R.id.btnGrantSmsPermission)
         btnGrantNotificationPermission = findViewById(R.id.btnGrantNotificationPermission)
         btnDisableBatteryOpt = findViewById(R.id.btnDisableBatteryOpt)
@@ -66,25 +94,96 @@ class MainActivity : AppCompatActivity() {
 
     private fun loadSavedConfig() {
         val prefs = ForwarderEngine.getPrefs(this)
-        etTgBotToken.setText(prefs.getString("tg_bot_token", ""))
-        etTgChatId.setText(prefs.getString("tg_chat_id", ""))
-        etSupabaseUrl.setText(prefs.getString("supabase_url", ""))
-        etSupabaseKey.setText(prefs.getString("supabase_key", ""))
-        etEmailWebhook.setText(prefs.getString("email_webhook", ""))
+        val tgToken = prefs.getString("tg_bot_token", "") ?: ""
+        val tgChatId = prefs.getString("tg_chat_id", "") ?: ""
+        val supabaseUrl = prefs.getString("supabase_url", "") ?: ""
+        val supabaseKey = prefs.getString("supabase_key", "") ?: ""
+        val emailWebhook = prefs.getString("email_webhook", "") ?: ""
+
+        etTgBotToken.setText(tgToken)
+        etTgChatId.setText(tgChatId)
+        etSupabaseUrl.setText(supabaseUrl)
+        etSupabaseKey.setText(supabaseKey)
+        etEmailWebhook.setText(emailWebhook)
+
+        val hasSavedConfig = tgToken.isNotBlank() || supabaseUrl.isNotBlank() || emailWebhook.isNotBlank()
+        if (hasSavedConfig) {
+            updateCompactSummary(tgToken, tgChatId, supabaseUrl, emailWebhook)
+            layoutSavedCredentials.visibility = View.VISIBLE
+            layoutEditCredentials.visibility = View.GONE
+            btnCancelEdit.visibility = View.VISIBLE
+        } else {
+            layoutSavedCredentials.visibility = View.GONE
+            layoutEditCredentials.visibility = View.VISIBLE
+            btnCancelEdit.visibility = View.GONE
+        }
+
+        val filterMode = prefs.getString("filter_mode", "ALL") ?: "ALL"
+        when (filterMode) {
+            "SMS_ONLY" -> rbFilterSms.isChecked = true
+            "NOTIFICATION_ONLY" -> rbFilterNotification.isChecked = true
+            else -> rbFilterAll.isChecked = true
+        }
+    }
+
+    private fun updateCompactSummary(tgToken: String, tgChatId: String, supabaseUrl: String, emailWebhook: String) {
+        val maskedToken = if (tgToken.length > 6) "••••${tgToken.takeLast(4)}" else if (tgToken.isNotBlank()) "Configured" else "Not set"
+        val maskedChatId = if (tgChatId.isNotBlank()) tgChatId else "Not set"
+        val sbStatus = if (supabaseUrl.isNotBlank()) "Configured (${supabaseUrl.take(20)}...)" else "Not set"
+        val webhookStatus = if (emailWebhook.isNotBlank()) "Configured" else "Not set"
+
+        tvSavedSummary.text = "• Telegram Bot: $maskedToken (Chat ID: $maskedChatId)\n• Supabase: $sbStatus\n• Webhook: $webhookStatus"
     }
 
     private fun setupListeners() {
         btnSaveConfig.setOnClickListener {
+            val token = etTgBotToken.text.toString().trim()
+            val chatId = etTgChatId.text.toString().trim()
+            val sbUrl = etSupabaseUrl.text.toString().trim()
+            val sbKey = etSupabaseKey.text.toString().trim()
+            val webhook = etEmailWebhook.text.toString().trim()
+
             val prefs = ForwarderEngine.getPrefs(this).edit()
-            prefs.putString("tg_bot_token", etTgBotToken.text.toString().trim())
-            prefs.putString("tg_chat_id", etTgChatId.text.toString().trim())
-            prefs.putString("supabase_url", etSupabaseUrl.text.toString().trim())
-            prefs.putString("supabase_key", etSupabaseKey.text.toString().trim())
-            prefs.putString("email_webhook", etEmailWebhook.text.toString().trim())
+            prefs.putString("tg_bot_token", token)
+            prefs.putString("tg_chat_id", chatId)
+            prefs.putString("supabase_url", sbUrl)
+            prefs.putString("supabase_key", sbKey)
+            prefs.putString("email_webhook", webhook)
             prefs.apply()
+
+            updateCompactSummary(token, chatId, sbUrl, webhook)
+            layoutSavedCredentials.visibility = View.VISIBLE
+            layoutEditCredentials.visibility = View.GONE
+            btnCancelEdit.visibility = View.VISIBLE
 
             Toast.makeText(this, "Configuration Saved!", Toast.LENGTH_SHORT).show()
             tvStatus.text = "Status: Configuration Saved"
+        }
+
+        btnEditConfig.setOnClickListener {
+            layoutSavedCredentials.visibility = View.GONE
+            layoutEditCredentials.visibility = View.VISIBLE
+            tvStatus.text = "Status: Editing Credentials"
+        }
+
+        btnCancelEdit.setOnClickListener {
+            loadSavedConfig()
+            tvStatus.text = "Status: Ready"
+        }
+
+        rgFilterMode.setOnCheckedChangeListener { _, checkedId ->
+            val mode = when (checkedId) {
+                R.id.rbFilterSms -> "SMS_ONLY"
+                R.id.rbFilterNotification -> "NOTIFICATION_ONLY"
+                else -> "ALL"
+            }
+            ForwarderEngine.getPrefs(this).edit().putString("filter_mode", mode).apply()
+            val modeName = when (mode) {
+                "SMS_ONLY" -> "Only SIM SMS"
+                "NOTIFICATION_ONLY" -> "Notification Only"
+                else -> "All (SMS & Notifications)"
+            }
+            Toast.makeText(this, "Filter mode set to: $modeName", Toast.LENGTH_SHORT).show()
         }
 
         btnGrantSmsPermission.setOnClickListener {
@@ -167,3 +266,4 @@ class MainActivity : AppCompatActivity() {
         }
     }
 }
+
