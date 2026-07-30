@@ -50,9 +50,9 @@ It comes with a built-in **Live Web Dashboard** (`index.html`), offline SQLite c
 ### 2. Supabase Credentials & Table Setup
 - **Supabase URL & Anon Key**:
   1. Go to your [Supabase Dashboard](https://supabase.com/dashboard) project.
-  2. Copy your **Project URL** (e.g., `https://xyz.supabase.co`).
-  3. Go to **Project Settings (⚙️)** -> **API Keys** -> **Legacy anon, service_role API keys** 
-  4. copy the **`anon` `public`** key. it would be like **eyJhbGci.......**
+  2. Go to **Settings (⚙️)** -> **API** (or **Data API**).
+  3. Copy your **Project URL** (e.g., `https://xyz.supabase.co`).
+  4. Under **Project API keys**, copy the **`anon` `public`** key.
 - **Database Table Setup**:
   Open the **SQL Editor** (`>_`) in Supabase and run:
   ```sql
@@ -67,13 +67,45 @@ It comes with a built-in **Live Web Dashboard** (`index.html`), offline SQLite c
 
 ---
 
-### 3. Email / Webhook URL (Optional)
-- **For Direct Email Forwarding**:
-  1. Sign up for free on [Make.com](https://make.com).
-  2. Create a new Scenario -> select **Webhooks (Custom Webhook)**.
-  3. Copy the generated Webhook URL (e.g., `https://hook.eu1.make.com/...`).
-  4. Connect a **Gmail** module (`Send an Email`) to forward incoming webhook payloads to your email address.
+### 3. Email / Webhook URL (100% Free Google Apps Script Method)
+- **Direct Free Gmail Forwarding (3,000 emails/month)**:
+  1. Open [script.google.com](https://script.google.com) and create a **New Project**.
+  2. Replace the editor code with:
+     ```javascript
+     function doPost(e) {
+       try {
+         var data = JSON.parse(e.postData.contents);
+         var source = data.source || "SMS Note";
+         var sender = data.sender || "Unknown";
+         var content = data.content || "";
+         
+         var emailRecipient = "YOUR_EMAIL@gmail.com"; // Your target Gmail
+         var subject = "📱 [" + source + "] From: " + sender;
+         var body = "Source: " + source + "\nFrom: " + sender + "\n\nMessage:\n" + content;
+         
+         MailApp.sendEmail(emailRecipient, subject, body);
+         return ContentService.createTextOutput("OK");
+       } catch (err) {
+         return ContentService.createTextOutput("Error: " + err.toString());
+       }
+     }
+     ```
+  3. Click **Save (💾)** ➔ **Deploy** ➔ **New deployment**.
+  4. Select type **Web app**, set **Who has access** to **Anyone**, and click **Deploy**.
+  5. Copy the generated **Web App URL** and paste it into the **`Webhook URL`** box in the Android app or Web Dashboard.
+
+- **Alternative (Make.com)**: Create a Webhook scenario connecting to Gmail (1,000 operations/month).
 - **For Testing**: Use [Webhook.site](https://webhook.site) for instant live payload inspection.
+
+---
+
+## 🔒 Credentials & Filter Mode Features
+
+- **🔒 Compact Saved Credentials**: Once configuration is saved, input fields collapse into a small, key-locked summary card. Credentials cannot be modified without clicking **`✏️ Edit Credentials`**.
+- **🎛️ 3 Message Filter Modes**:
+  - **All (SMS & Notifications)**: Forwards all captured messages.
+  - **Only SIM SMS**: Forwards only incoming SIM SMS messages.
+  - **Notification**: Forwards only app notifications.
 
 ---
 
@@ -82,8 +114,9 @@ It comes with a built-in **Live Web Dashboard** (`index.html`), offline SQLite c
 1. Download **`app-debug.apk`** from [GitHub Releases](../../releases).
 2. Install on Android device.
 3. Launch **SMS Note** and fill in your keys.
-4. Click **SAVE CONFIGURATION**.
-5. Grant **SMS Permissions**, **Notification Access**, and **Allow Background Running** (Disable Battery Saver restrictions).
+4. Click **SAVE CONFIGURATION** (collapses into compact locked view).
+5. Select your desired **Message Forwarding Filter Mode** (All, Only SIM SMS, or Notification).
+6. Grant **SMS Permissions**, **Notification Access**, and **Allow Background Running** (Disable Battery Saver restrictions).
 
 ---
 
@@ -94,10 +127,11 @@ Double-click [`index.html`](index.html) or run a local server:
 ```bash
 python -m http.server 8080
 ```
-Then open `http://localhost:8080` to track all captured SMS & notifications live with automatic 7-day data retention!
+Then open `http://localhost:8080` to track all captured SMS & notifications live with automatic 7-day data retention, compact credential management, and real-time filter tabs!
 
 ---
 
 ## 📄 License
 
 This project is released under the **MIT License**.
+
