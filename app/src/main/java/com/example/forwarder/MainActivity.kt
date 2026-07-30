@@ -11,6 +11,7 @@ import android.os.PowerManager
 import android.provider.Settings
 import android.view.View
 import android.widget.Button
+import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.RadioButton
@@ -224,6 +225,7 @@ class MainActivity : AppCompatActivity() {
         val maskedToken = if (tgToken.length > 6) "••••${tgToken.takeLast(4)}" else if (tgToken.isNotBlank()) "Configured" else "Not set"
         val maskedChatId = if (tgChatId.isNotBlank()) tgChatId else "Not set"
         val sbStatus = if (supabaseUrl.isNotBlank()) "Configured (${supabaseUrl.take(20)}...)" else "Not set"
+        val webhookStatus = if (emailWebhook.isNotBlank()) "Configured" else "Not set"
         tvSavedSummary.text = "• Telegram Bot: $maskedToken (Chat ID: $maskedChatId)\n• Supabase: $sbStatus\n• Webhook: $webhookStatus"
     }
 
