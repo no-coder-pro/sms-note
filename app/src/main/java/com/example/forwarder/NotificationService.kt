@@ -40,6 +40,14 @@ class NotificationService : NotificationListenerService() {
         )
     }
 
+    override fun onListenerConnected() {
+        super.onListenerConnected()
+        Log.d("NotificationService", "Notification Listener Connected! Checking offline queue...")
+        if (ForwarderEngine.isNetworkAvailable(applicationContext)) {
+            ForwarderEngine.flushPendingMessages(applicationContext)
+        }
+    }
+
     override fun onNotificationRemoved(sbn: StatusBarNotification?) {
         super.onNotificationRemoved(sbn)
     }
