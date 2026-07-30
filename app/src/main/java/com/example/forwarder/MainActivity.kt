@@ -47,7 +47,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var cbEnableTelegram: CheckBox
     private lateinit var cbEnableSupabase: CheckBox
     private lateinit var cbEnableWebhook: CheckBox
-    private lateinit var etAppFilter: EditText
     private lateinit var btnSelectApps: Button
     private lateinit var tvSelectedAppsSummary: TextView
 
@@ -101,7 +100,6 @@ class MainActivity : AppCompatActivity() {
 
         btnSelectApps = findViewById(R.id.btnSelectApps)
         tvSelectedAppsSummary = findViewById(R.id.tvSelectedAppsSummary)
-        etAppFilter = findViewById(R.id.etAppFilter)
 
         btnGrantSmsPermission = findViewById(R.id.btnGrantSmsPermission)
         btnGrantNotificationPermission = findViewById(R.id.btnGrantNotificationPermission)
@@ -128,7 +126,6 @@ class MainActivity : AppCompatActivity() {
         cbEnableSupabase.isChecked = prefs.getBoolean("enable_supabase", true)
         cbEnableWebhook.isChecked = prefs.getBoolean("enable_webhook", true)
 
-        etAppFilter.setText(prefs.getString("app_filter", ""))
         updateSelectedAppsSummary()
 
         val hasSavedConfig = tgToken.isNotBlank() || supabaseUrl.isNotBlank() || emailWebhook.isNotBlank()
@@ -190,7 +187,16 @@ class MainActivity : AppCompatActivity() {
         val lvAppList = dialogView.findViewById<ListView>(R.id.lvAppList)
         val btnSaveAppSelection = dialogView.findViewById<Button>(R.id.btnSaveAppSelection)
 
-        val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_multiple_choice, appNames)
+        val adapter = object : ArrayAdapter<String>(this, android.R.layout.simple_list_item_multiple_choice, appNames) {
+            override fun getView(position: Int, convertView: View?, parent: android.view.ViewGroup): View {
+                val view = super.getView(position, convertView, parent)
+                if (view is android.widget.CheckedTextView) {
+                    view.setTextColor(android.graphics.Color.WHITE)
+                    view.textSize = 15f
+                }
+                return view
+            }
+        }
         lvAppList.adapter = adapter
 
         // Pre-check saved items
@@ -254,7 +260,6 @@ class MainActivity : AppCompatActivity() {
             val sbUrl = etSupabaseUrl.text.toString().trim()
             val sbKey = etSupabaseKey.text.toString().trim()
             val webhook = etEmailWebhook.text.toString().trim()
-            val appFilter = etAppFilter.text.toString().trim()
 
             val prefs = ForwarderEngine.getPrefs(this).edit()
             prefs.putString("tg_bot_token", token)
@@ -266,7 +271,6 @@ class MainActivity : AppCompatActivity() {
             prefs.putBoolean("enable_telegram", cbEnableTelegram.isChecked)
             prefs.putBoolean("enable_supabase", cbEnableSupabase.isChecked)
             prefs.putBoolean("enable_webhook", cbEnableWebhook.isChecked)
-            prefs.putString("app_filter", appFilter)
             prefs.apply()
 
             updateCompactSummary(token, chatId, sbUrl, webhook)
