@@ -72,6 +72,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        ForwarderEngine.flushPendingMessages(this)
         updatePendingCount()
     }
 
@@ -399,4 +400,3 @@ class MainActivity : AppCompatActivity() {
         }
     }
 }
-
