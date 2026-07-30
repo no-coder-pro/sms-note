@@ -51,7 +51,7 @@
                 android:id="@+id/btnEditConfig"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="✏️ Edit Credentials"/>
+                android:text="Edit Credentials"/>
         </LinearLayout>
 
         <!-- Credentials Form View (Editable) -->
@@ -95,7 +95,7 @@
                 android:id="@+id/etSupabaseUrl"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Supabase URL (e.g. https://xyz.supabase.co)"
+                android:hint="Supabase URL"
                 android:inputType="textUri"/>
 
             <EditText
@@ -108,7 +108,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Email / Webhook URL (Optional)"
+                android:text="Gmail Webhook URL"
                 android:textStyle="bold"
                 android:textSize="16sp"
                 android:layout_marginTop="16dp"/>
@@ -131,7 +131,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Save Configuration"/>
+                    android:text="Save"/>
 
                 <Button
                     android:id="@+id/btnCancelEdit"
@@ -226,7 +226,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Only SIM SMS"/>
+                android:text="SMS"/>
 
             <RadioButton
                 android:id="@+id/rbFilterNotification"
@@ -249,7 +249,7 @@
             android:id="@+id/btnSelectApps"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="📱 Select Apps to Intercept"
+            android:text="Select Apps"
             android:layout_marginTop="6dp"/>
 
         <TextView
@@ -272,7 +272,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Permissions &amp; Power Savings"
+            android:text="Permissions"
             android:textStyle="bold"
             android:textSize="16sp"/>
 
@@ -280,21 +280,21 @@
             android:id="@+id/btnGrantSmsPermission"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="1. Grant SMS Permissions"
+            android:text="SMS Permissions"
             android:layout_marginTop="8dp"/>
 
         <Button
             android:id="@+id/btnGrantNotificationPermission"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="2. Enable Notification Listener Access"
+            android:text="Notification Access"
             android:layout_marginTop="8dp"/>
 
         <Button
             android:id="@+id/btnDisableBatteryOpt"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="3. Allow Background (Disable Power Saving Restriction)"
+            android:text="Background Run"
             android:layout_marginTop="8dp"/>
 
         <TextView
