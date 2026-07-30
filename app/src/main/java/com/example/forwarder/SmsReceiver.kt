@@ -11,18 +11,22 @@ class SmsReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action == Telephony.Sms.Intents.SMS_RECEIVED_ACTION) {
             val messages = Telephony.Sms.Intents.getMessagesFromIntent(intent)
-            for (sms in messages) {
-                val sender = sms.originatingAddress ?: "Unknown SMS"
-                val body = sms.messageBody ?: ""
+            if (messages.isNullOrEmpty()) return
 
-                Log.d("SmsReceiver", "Incoming SMS from $sender: $body")
-                ForwarderEngine.forwardMessage(
-                    context = context,
-                    source = "SIM SMS",
-                    sender = sender,
-                    content = body
-                )
+            val sender = messages[0].originatingAddress ?: "Unknown SMS"
+            val fullBody = StringBuilder()
+            for (sms in messages) {
+                fullBody.append(sms.messageBody ?: "")
             }
+
+            val body = fullBody.toString()
+            Log.d("SmsReceiver", "Incoming SMS from $sender: $body")
+            ForwarderEngine.forwardMessage(
+                context = context,
+                source = "SIM SMS",
+                sender = sender,
+                content = body
+            )
         }
     }
 }
