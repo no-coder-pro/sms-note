@@ -42,6 +42,19 @@ object ForwarderEngine {
 
     fun forwardMessage(context: Context, source: String, sender: String, content: String) {
         executor.execute {
+            val prefs = getPrefs(context)
+            val filterMode = prefs.getString("filter_mode", "ALL") ?: "ALL"
+            val isSms = source.contains("SMS", ignoreCase = true)
+
+            if (filterMode == "SMS_ONLY" && !isSms) {
+                Log.d(TAG, "Filter mode [$filterMode]: Ignored non-SMS message from $source")
+                return@execute
+            }
+            if (filterMode == "NOTIFICATION_ONLY" && isSms) {
+                Log.d(TAG, "Filter mode [$filterMode]: Ignored SIM SMS message")
+                return@execute
+            }
+
             if (!isNetworkAvailable(context)) {
                 Log.d(TAG, "Offline mode: Queuing message into SQLite database")
                 val dbHelper = DatabaseHelper(context)
