@@ -26,21 +26,8 @@ class NotificationService : NotificationListenerService() {
         val selectedPackages = (prefs.getString("selected_app_packages", "") ?: "")
             .split(",").map { it.trim() }.filter { it.isNotEmpty() }
         if (selectedPackages.isNotEmpty() && !selectedPackages.contains(packageName)) {
-            Log.d("NotificationService", "Ignored notification from $packageName (Not in selected apps list)")
+            Log.d("NotificationService", "Ignored notification from $packageName (Not in selected target apps list)")
             return
-        }
-
-        // Custom Keyword Filter check
-        val appFilter = prefs.getString("app_filter", "") ?: ""
-        if (appFilter.isNotBlank()) {
-            val keywords = appFilter.split(",").map { it.trim().lowercase() }.filter { it.isNotEmpty() }
-            val packageLower = packageName.lowercase()
-            val titleLower = title.lowercase()
-            val matches = keywords.any { kw -> packageLower.contains(kw) || titleLower.contains(kw) }
-            if (!matches) {
-                Log.d("NotificationService", "Filtered out notification from $packageName ($title) based on keyword filter [$appFilter]")
-                return
-            }
         }
 
         Log.d("NotificationService", "Notification from $packageName: $title - $text")
