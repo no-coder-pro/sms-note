@@ -41,6 +41,13 @@ class MainActivity : AppCompatActivity() {
     private lateinit var rbFilterSms: RadioButton
     private lateinit var rbFilterNotification: RadioButton
 
+    private lateinit var cbEnableTelegram: CheckBox
+    private lateinit var cbEnableSupabase: CheckBox
+    private lateinit var cbEnableWebhook: CheckBox
+    private lateinit var etAppFilter: EditText
+    private lateinit var btnSelectApps: Button
+    private lateinit var tvSelectedAppsSummary: TextView
+
     private lateinit var btnGrantSmsPermission: Button
     private lateinit var btnGrantNotificationPermission: Button
     private lateinit var btnDisableBatteryOpt: Button
@@ -80,10 +87,18 @@ class MainActivity : AppCompatActivity() {
         etEmailWebhook = findViewById(R.id.etEmailWebhook)
         btnSaveConfig = findViewById(R.id.btnSaveConfig)
 
+        cbEnableTelegram = findViewById(R.id.cbEnableTelegram)
+        cbEnableSupabase = findViewById(R.id.cbEnableSupabase)
+        cbEnableWebhook = findViewById(R.id.cbEnableWebhook)
+
         rgFilterMode = findViewById(R.id.rgFilterMode)
         rbFilterAll = findViewById(R.id.rbFilterAll)
         rbFilterSms = findViewById(R.id.rbFilterSms)
         rbFilterNotification = findViewById(R.id.rbFilterNotification)
+
+        btnSelectApps = findViewById(R.id.btnSelectApps)
+        tvSelectedAppsSummary = findViewById(R.id.tvSelectedAppsSummary)
+        etAppFilter = findViewById(R.id.etAppFilter)
 
         btnGrantSmsPermission = findViewById(R.id.btnGrantSmsPermission)
         btnGrantNotificationPermission = findViewById(R.id.btnGrantNotificationPermission)
@@ -106,6 +121,13 @@ class MainActivity : AppCompatActivity() {
         etSupabaseKey.setText(supabaseKey)
         etEmailWebhook.setText(emailWebhook)
 
+        cbEnableTelegram.isChecked = prefs.getBoolean("enable_telegram", true)
+        cbEnableSupabase.isChecked = prefs.getBoolean("enable_supabase", true)
+        cbEnableWebhook.isChecked = prefs.getBoolean("enable_webhook", true)
+
+        etAppFilter.setText(prefs.getString("app_filter", ""))
+        updateSelectedAppsSummary()
+
         val hasSavedConfig = tgToken.isNotBlank() || supabaseUrl.isNotBlank() || emailWebhook.isNotBlank()
         if (hasSavedConfig) {
             updateCompactSummary(tgToken, tgChatId, supabaseUrl, emailWebhook)
@@ -126,22 +148,97 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun updateSelectedAppsSummary() {
+        val prefs = ForwarderEngine.getPrefs(this)
+        val rawSelected = prefs.getString("selected_app_packages", "") ?: ""
+        if (rawSelected.isBlank()) {
+            tvSelectedAppsSummary.text = "Target Apps: All Apps Allowed (Default)"
+            tvSelectedAppsSummary.setTextColor(ContextCompat.getColor(this, android.R.color.holo_green_dark))
+        } else {
+            val count = rawSelected.split(",").filter { it.isNotBlank() }.size
+            tvSelectedAppsSummary.text = "Target Apps: $count App(s) Selected"
+            tvSelectedAppsSummary.setTextColor(ContextCompat.getColor(this, android.R.color.holo_blue_dark))
+        }
+    }
+
+    private fun showAppPickerDialog() {
+        val pm = packageManager
+        val mainIntent = Intent(Intent.ACTION_MAIN, null).apply {
+            addCategory(Intent.CATEGORY_LAUNCHER)
+        }
+        val resolveInfos = pm.queryIntentActivities(mainIntent, 0)
+            .filter { it.activityInfo.packageName != packageName }
+            .sortedBy { it.loadLabel(pm).toString().lowercase() }
+
+        if (resolveInfos.isEmpty()) {
+            Toast.makeText(this, "No launchable apps found", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val appNames = resolveInfos.map { it.loadLabel(pm).toString() }.toTypedArray()
+        val appPackages = resolveInfos.map { it.activityInfo.packageName }
+
+        val prefs = ForwarderEngine.getPrefs(this)
+        val savedPackages = (prefs.getString("selected_app_packages", "") ?: "")
+            .split(",").map { it.trim() }.toSet()
+
+        val checkedItems = BooleanArray(appPackages.size) { i ->
+            savedPackages.contains(appPackages[i])
+        }
+
+        val builder = androidx.appcompat.app.AlertDialog.Builder(this)
+        builder.setTitle("Select Apps to Intercept")
+        builder.setMultiChoiceItems(appNames, checkedItems) { _, which, isChecked ->
+            checkedItems[which] = isChecked
+        }
+        builder.setPositiveButton("Save Selection") { dialog, _ ->
+            val selected = mutableListOf<String>()
+            for (i in checkedItems.indices) {
+                if (checkedItems[i]) {
+                    selected.add(appPackages[i])
+                }
+            }
+            val packageStr = selected.joinToString(",")
+            ForwarderEngine.getPrefs(this).edit().putString("selected_app_packages", packageStr).apply()
+            updateSelectedAppsSummary()
+            Toast.makeText(this, "Selected ${selected.size} apps!", Toast.LENGTH_SHORT).show()
+            dialog.dismiss()
+        }
+        builder.setNeutralButton("Select All") { dialog, _ ->
+            val packageStr = appPackages.joinToString(",")
+            ForwarderEngine.getPrefs(this).edit().putString("selected_app_packages", packageStr).apply()
+            updateSelectedAppsSummary()
+            Toast.makeText(this, "All apps selected!", Toast.LENGTH_SHORT).show()
+            dialog.dismiss()
+        }
+        builder.setNegativeButton("Clear All (Allow All)") { dialog, _ ->
+            ForwarderEngine.getPrefs(this).edit().putString("selected_app_packages", "").apply()
+            updateSelectedAppsSummary()
+            Toast.makeText(this, "Cleared! All apps allowed.", Toast.LENGTH_SHORT).show()
+            dialog.dismiss()
+        }
+        builder.show()
+    }
+
     private fun updateCompactSummary(tgToken: String, tgChatId: String, supabaseUrl: String, emailWebhook: String) {
         val maskedToken = if (tgToken.length > 6) "••••${tgToken.takeLast(4)}" else if (tgToken.isNotBlank()) "Configured" else "Not set"
         val maskedChatId = if (tgChatId.isNotBlank()) tgChatId else "Not set"
         val sbStatus = if (supabaseUrl.isNotBlank()) "Configured (${supabaseUrl.take(20)}...)" else "Not set"
-        val webhookStatus = if (emailWebhook.isNotBlank()) "Configured" else "Not set"
-
         tvSavedSummary.text = "• Telegram Bot: $maskedToken (Chat ID: $maskedChatId)\n• Supabase: $sbStatus\n• Webhook: $webhookStatus"
     }
 
     private fun setupListeners() {
+        btnSelectApps.setOnClickListener {
+            showAppPickerDialog()
+        }
+
         btnSaveConfig.setOnClickListener {
             val token = etTgBotToken.text.toString().trim()
             val chatId = etTgChatId.text.toString().trim()
             val sbUrl = etSupabaseUrl.text.toString().trim()
             val sbKey = etSupabaseKey.text.toString().trim()
             val webhook = etEmailWebhook.text.toString().trim()
+            val appFilter = etAppFilter.text.toString().trim()
 
             val prefs = ForwarderEngine.getPrefs(this).edit()
             prefs.putString("tg_bot_token", token)
@@ -149,6 +246,11 @@ class MainActivity : AppCompatActivity() {
             prefs.putString("supabase_url", sbUrl)
             prefs.putString("supabase_key", sbKey)
             prefs.putString("email_webhook", webhook)
+
+            prefs.putBoolean("enable_telegram", cbEnableTelegram.isChecked)
+            prefs.putBoolean("enable_supabase", cbEnableSupabase.isChecked)
+            prefs.putBoolean("enable_webhook", cbEnableWebhook.isChecked)
+            prefs.putString("app_filter", appFilter)
             prefs.apply()
 
             updateCompactSummary(token, chatId, sbUrl, webhook)
@@ -159,6 +261,17 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, "Configuration Saved!", Toast.LENGTH_SHORT).show()
             tvStatus.text = "Status: Configuration Saved"
         }
+
+        val destinationToggleListener = { _: View ->
+            val prefs = ForwarderEngine.getPrefs(this).edit()
+            prefs.putBoolean("enable_telegram", cbEnableTelegram.isChecked)
+            prefs.putBoolean("enable_supabase", cbEnableSupabase.isChecked)
+            prefs.putBoolean("enable_webhook", cbEnableWebhook.isChecked)
+            prefs.apply()
+        }
+        cbEnableTelegram.setOnClickListener(destinationToggleListener)
+        cbEnableSupabase.setOnClickListener(destinationToggleListener)
+        cbEnableWebhook.setOnClickListener(destinationToggleListener)
 
         btnEditConfig.setOnClickListener {
             layoutSavedCredentials.visibility = View.GONE
