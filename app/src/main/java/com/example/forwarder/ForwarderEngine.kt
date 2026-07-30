@@ -102,6 +102,10 @@ object ForwarderEngine {
         val supabaseKey = prefs.getString("supabase_key", "") ?: ""
         val emailWebhook = prefs.getString("email_webhook", "") ?: ""
 
+        val enableTg = prefs.getBoolean("enable_telegram", true)
+        val enableSb = prefs.getBoolean("enable_supabase", true)
+        val enableWh = prefs.getBoolean("enable_webhook", true)
+
         val formattedMessage = "📱 *[$source]*\n👤 *From:* $sender\n💬 *Message:* $content"
 
         var telegramSuccess = true
@@ -109,17 +113,17 @@ object ForwarderEngine {
         var webhookSuccess = true
 
         // 1. Send to Telegram
-        if (botToken.isNotBlank() && chatId.isNotBlank()) {
+        if (enableTg && botToken.isNotBlank() && chatId.isNotBlank()) {
             telegramSuccess = sendTelegram(botToken, chatId, formattedMessage)
         }
 
         // 2. Send to Supabase
-        if (supabaseUrl.isNotBlank() && supabaseKey.isNotBlank()) {
+        if (enableSb && supabaseUrl.isNotBlank() && supabaseKey.isNotBlank()) {
             supabaseSuccess = sendSupabase(supabaseUrl, supabaseKey, source, sender, content)
         }
 
         // 3. Send to Webhook
-        if (emailWebhook.isNotBlank()) {
+        if (enableWh && emailWebhook.isNotBlank()) {
             webhookSuccess = sendWebhook(emailWebhook, source, sender, content)
         }
 
