@@ -17,71 +17,174 @@
             android:textStyle="bold"
             android:layout_marginBottom="16dp"/>
 
+        <!-- Saved Credentials Compact Summary Card -->
+        <LinearLayout
+            android:id="@+id/layoutSavedCredentials"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="12dp"
+            android:background="#10000000"
+            android:visibility="gone"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🔒 Credentials Saved &amp; Active"
+                android:textStyle="bold"
+                android:textColor="#008000"
+                android:textSize="14sp"/>
+
+            <TextView
+                android:id="@+id/tvSavedSummary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="• Telegram Bot: Configured\n• Supabase: Configured\n• Webhook: Configured"
+                android:textSize="13sp"
+                android:textColor="#555555"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="8dp"/>
+
+            <Button
+                android:id="@+id/btnEditConfig"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="✏️ Edit Credentials"/>
+        </LinearLayout>
+
+        <!-- Credentials Form View (Editable) -->
+        <LinearLayout
+            android:id="@+id/layoutEditCredentials"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Telegram Settings"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:layout_marginTop="8dp"/>
+
+            <EditText
+                android:id="@+id/etTgBotToken"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Telegram Bot Token"
+                android:inputType="text"/>
+
+            <EditText
+                android:id="@+id/etTgChatId"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Telegram Chat ID"
+                android:inputType="text"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Supabase Settings (Optional)"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:layout_marginTop="16dp"/>
+
+            <EditText
+                android:id="@+id/etSupabaseUrl"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Supabase URL (e.g. https://xyz.supabase.co)"
+                android:inputType="textUri"/>
+
+            <EditText
+                android:id="@+id/etSupabaseKey"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Supabase Anon/Service Key"
+                android:inputType="text"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Email / Webhook URL (Optional)"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:layout_marginTop="16dp"/>
+
+            <EditText
+                android:id="@+id/etEmailWebhook"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Webhook URL"
+                android:inputType="textUri"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="16dp">
+
+                <Button
+                    android:id="@+id/btnSaveConfig"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Save Configuration"/>
+
+                <Button
+                    android:id="@+id/btnCancelEdit"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Cancel"
+                    android:visibility="gone"
+                    android:layout_marginStart="8dp"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#CCCCCC"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Message Forwarding Filter Options -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Telegram Settings"
+            android:text="Message Forwarding Filter"
             android:textStyle="bold"
-            android:textSize="16sp"
-            android:layout_marginTop="8dp"/>
+            android:textSize="16sp"/>
 
-        <EditText
-            android:id="@+id/etTgBotToken"
+        <RadioGroup
+            android:id="@+id/rgFilterMode"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Telegram Bot Token"
-            android:inputType="text"/>
+            android:orientation="vertical"
+            android:layout_marginTop="8dp">
 
-        <EditText
-            android:id="@+id/etTgChatId"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Telegram Chat ID"
-            android:inputType="text"/>
+            <RadioButton
+                android:id="@+id/rbFilterAll"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="All (SMS &amp; Notifications)"
+                android:checked="true"/>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Supabase Settings (Optional)"
-            android:textStyle="bold"
-            android:textSize="16sp"
-            android:layout_marginTop="16dp"/>
+            <RadioButton
+                android:id="@+id/rbFilterSms"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Only SIM SMS (Incoming SIM / Number)"/>
 
-        <EditText
-            android:id="@+id/etSupabaseUrl"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Supabase URL (e.g. https://xyz.supabase.co)"
-            android:inputType="textUri"/>
-
-        <EditText
-            android:id="@+id/etSupabaseKey"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Supabase Anon/Service Key"
-            android:inputType="text"/>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Email / Webhook URL (Optional)"
-            android:textStyle="bold"
-            android:textSize="16sp"
-            android:layout_marginTop="16dp"/>
-
-        <EditText
-            android:id="@+id/etEmailWebhook"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Webhook URL"
-            android:inputType="textUri"/>
-
-        <Button
-            android:id="@+id/btnSaveConfig"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Save Configuration"
-            android:layout_marginTop="16dp"/>
+            <RadioButton
+                android:id="@+id/rbFilterNotification"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Notification Only (App Notifications)"/>
+        </RadioGroup>
 
         <View
             android:layout_width="match_parent"
