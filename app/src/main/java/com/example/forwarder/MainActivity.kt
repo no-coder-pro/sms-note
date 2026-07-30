@@ -10,10 +10,12 @@ import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings
 import android.view.View
+import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.LinearLayout
+import android.widget.ListView
 import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.TextView
@@ -181,44 +183,56 @@ class MainActivity : AppCompatActivity() {
 
         val prefs = ForwarderEngine.getPrefs(this)
         val savedPackages = (prefs.getString("selected_app_packages", "") ?: "")
-            .split(",").map { it.trim() }.toSet()
+            .split(",").map { it.trim() }.filter { it.isNotEmpty() }.toSet()
 
-        val checkedItems = BooleanArray(appPackages.size) { i ->
-            savedPackages.contains(appPackages[i])
+        val dialogView = layoutInflater.inflate(R.layout.dialog_app_picker, null)
+        val cbSelectAllApps = dialogView.findViewById<CheckBox>(R.id.cbSelectAllApps)
+        val lvAppList = dialogView.findViewById<ListView>(R.id.lvAppList)
+        val btnSaveAppSelection = dialogView.findViewById<Button>(R.id.btnSaveAppSelection)
+
+        val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_multiple_choice, appNames)
+        lvAppList.adapter = adapter
+
+        // Pre-check saved items
+        var initialCheckedCount = 0
+        for (i in appPackages.indices) {
+            if (savedPackages.contains(appPackages[i])) {
+                lvAppList.setItemChecked(i, true)
+                initialCheckedCount++
+            }
         }
 
-        val builder = androidx.appcompat.app.AlertDialog.Builder(this)
-        builder.setTitle("Select Apps to Intercept")
-        builder.setMultiChoiceItems(appNames, checkedItems) { _, which, isChecked ->
-            checkedItems[which] = isChecked
+        // Set initial state of Select All checkbox
+        cbSelectAllApps.isChecked = (initialCheckedCount == appPackages.size && appPackages.isNotEmpty())
+
+        // Top Select All / Unselect All checkbox listener
+        cbSelectAllApps.setOnClickListener {
+            val isChecked = cbSelectAllApps.isChecked
+            for (i in appPackages.indices) {
+                lvAppList.setItemChecked(i, isChecked)
+            }
         }
-        builder.setPositiveButton("Save Selection") { dialog, _ ->
+
+        val dialog = androidx.appcompat.app.AlertDialog.Builder(this)
+            .setView(dialogView)
+            .create()
+
+        btnSaveAppSelection.setOnClickListener {
             val selected = mutableListOf<String>()
-            for (i in checkedItems.indices) {
-                if (checkedItems[i]) {
+            val checkedPositions = lvAppList.checkedItemPositions
+            for (i in appPackages.indices) {
+                if (checkedPositions.get(i)) {
                     selected.add(appPackages[i])
                 }
             }
             val packageStr = selected.joinToString(",")
             ForwarderEngine.getPrefs(this).edit().putString("selected_app_packages", packageStr).apply()
             updateSelectedAppsSummary()
-            Toast.makeText(this, "Selected ${selected.size} apps!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Saved ${selected.size} target apps!", Toast.LENGTH_SHORT).show()
             dialog.dismiss()
         }
-        builder.setNeutralButton("Select All") { dialog, _ ->
-            val packageStr = appPackages.joinToString(",")
-            ForwarderEngine.getPrefs(this).edit().putString("selected_app_packages", packageStr).apply()
-            updateSelectedAppsSummary()
-            Toast.makeText(this, "All apps selected!", Toast.LENGTH_SHORT).show()
-            dialog.dismiss()
-        }
-        builder.setNegativeButton("Clear All (Allow All)") { dialog, _ ->
-            ForwarderEngine.getPrefs(this).edit().putString("selected_app_packages", "").apply()
-            updateSelectedAppsSummary()
-            Toast.makeText(this, "Cleared! All apps allowed.", Toast.LENGTH_SHORT).show()
-            dialog.dismiss()
-        }
-        builder.show()
+
+        dialog.show()
     }
 
     private fun updateCompactSummary(tgToken: String, tgChatId: String, supabaseUrl: String, emailWebhook: String) {
