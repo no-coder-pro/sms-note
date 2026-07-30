@@ -4,6 +4,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import android.util.Log
 
 data class PendingMessage(
     val id: Long,
@@ -16,6 +17,7 @@ data class PendingMessage(
 class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
 
     companion object {
+        private const val TAG = "DatabaseHelper"
         private const val DATABASE_NAME = "forwarder_queue.db"
         private const val DATABASE_VERSION = 1
 
@@ -42,56 +44,72 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         onCreate(db)
     }
 
+    @Synchronized
     fun insertPendingMessage(source: String, sender: String, content: String): Long {
-        val db = writableDatabase
-        val values = ContentValues().apply {
-            put(COLUMN_SOURCE, source)
-            put(COLUMN_SENDER, sender)
-            put(COLUMN_CONTENT, content)
-            put(COLUMN_TIMESTAMP, System.currentTimeMillis())
+        return try {
+            val db = writableDatabase
+            val values = ContentValues().apply {
+                put(COLUMN_SOURCE, source)
+                put(COLUMN_SENDER, sender)
+                put(COLUMN_CONTENT, content)
+                put(COLUMN_TIMESTAMP, System.currentTimeMillis())
+            }
+            db.insert(TABLE_MESSAGES, null, values)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error inserting pending message into SQLite", e)
+            -1L
         }
-        val id = db.insert(TABLE_MESSAGES, null, values)
-        db.close()
-        return id
     }
 
+    @Synchronized
     fun getAllPendingMessages(): List<PendingMessage> {
         val list = mutableListOf<PendingMessage>()
-        val selectQuery = "SELECT * FROM $TABLE_MESSAGES ORDER BY $COLUMN_ID ASC"
-        val db = readableDatabase
-        val cursor = db.rawQuery(selectQuery, null)
+        try {
+            val selectQuery = "SELECT * FROM $TABLE_MESSAGES ORDER BY $COLUMN_ID ASC"
+            val db = readableDatabase
+            val cursor = db.rawQuery(selectQuery, null)
 
-        if (cursor.moveToFirst()) {
-            do {
-                val id = cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_ID))
-                val source = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_SOURCE))
-                val sender = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_SENDER))
-                val content = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CONTENT))
-                val timestamp = cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_TIMESTAMP))
+            if (cursor.moveToFirst()) {
+                do {
+                    val id = cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_ID))
+                    val source = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_SOURCE))
+                    val sender = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_SENDER))
+                    val content = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CONTENT))
+                    val timestamp = cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_TIMESTAMP))
 
-                list.add(PendingMessage(id, source, sender, content, timestamp))
-            } while (cursor.moveToNext())
+                    list.add(PendingMessage(id, source, sender, content, timestamp))
+                } while (cursor.moveToNext())
+            }
+            cursor.close()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error reading pending messages from SQLite", e)
         }
-        cursor.close()
-        db.close()
         return list
     }
 
+    @Synchronized
     fun deletePendingMessage(id: Long) {
-        val db = writableDatabase
-        db.delete(TABLE_MESSAGES, "$COLUMN_ID = ?", arrayOf(id.toString()))
-        db.close()
+        try {
+            val db = writableDatabase
+            db.delete(TABLE_MESSAGES, "$COLUMN_ID = ?", arrayOf(id.toString()))
+        } catch (e: Exception) {
+            Log.e(TAG, "Error deleting message $id from SQLite", e)
+        }
     }
 
+    @Synchronized
     fun getPendingCount(): Int {
-        val db = readableDatabase
-        val cursor = db.rawQuery("SELECT COUNT(*) FROM $TABLE_MESSAGES", null)
         var count = 0
-        if (cursor.moveToFirst()) {
-            count = cursor.getInt(0)
+        try {
+            val db = readableDatabase
+            val cursor = db.rawQuery("SELECT COUNT(*) FROM $TABLE_MESSAGES", null)
+            if (cursor.moveToFirst()) {
+                count = cursor.getInt(0)
+            }
+            cursor.close()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error fetching pending count from SQLite", e)
         }
-        cursor.close()
-        db.close()
         return count
     }
 }
