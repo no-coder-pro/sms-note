@@ -177,13 +177,13 @@
                 android:id="@+id/rbFilterSms"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Only SIM SMS (Incoming SIM / Number)"/>
+                android:text="Only SIM SMS"/>
 
             <RadioButton
                 android:id="@+id/rbFilterNotification"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Notification Only (App Notifications)"/>
+                android:text="Notification"/>
         </RadioGroup>
 
         <View
