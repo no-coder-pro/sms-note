@@ -602,9 +602,9 @@
     </div>
 
     <script>
-        // Supabase Configuration with localStorage persistence
-        const DEFAULT_SUPABASE_URL = "https://gtsrotjwclecltvnpisa.supabase.co";
-        const DEFAULT_SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd0c3JvdGp3Y2xlY2x0dm5waXNhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0MTQ0NjMsImV4cCI6MjEwMDk5MDQ2M30.us1TiobnWWk-qO7aFu3DKKUqNfdZQn90gej6Jtx7xKA";
+        // Supabase Configuration loaded exclusively from browser localStorage
+        const DEFAULT_SUPABASE_URL = "";
+        const DEFAULT_SUPABASE_KEY = "";
 
         function getSupabaseUrl() {
             return localStorage.getItem("supabase_url") || DEFAULT_SUPABASE_URL;
@@ -618,15 +618,19 @@
             const url = getSupabaseUrl();
             const key = getSupabaseKey();
 
-            const maskedUrl = url.length > 25 ? url.substring(0, 25) + '...' : url;
-            const maskedKey = key.length > 15 ? key.substring(0, 10) + '...' : 'Configured';
+            if (url && key) {
+                const maskedUrl = url.length > 30 ? url.substring(0, 30) + '...' : url;
+                const maskedKey = key.length > 15 ? key.substring(0, 10) + '...' : 'Configured';
 
-            document.getElementById("credSummaryText").innerHTML = `
-                <strong>URL:</strong> ${escapeHtml(maskedUrl)} &nbsp;|&nbsp; <strong>Key:</strong> ${escapeHtml(maskedKey)}
-            `;
-
-            document.getElementById("inputSbUrl").value = url;
-            document.getElementById("inputSbKey").value = key;
+                document.getElementById("credSummaryText").innerHTML = `
+                    <strong>URL:</strong> ${escapeHtml(maskedUrl)} &nbsp;|&nbsp; <strong>Key:</strong> ${escapeHtml(maskedKey)}
+                `;
+                document.getElementById("inputSbUrl").value = url;
+                document.getElementById("inputSbKey").value = key;
+                toggleEditCredentials(false);
+            } else {
+                toggleEditCredentials(true);
+            }
         }
 
         function toggleEditCredentials(showEdit) {
@@ -647,8 +651,7 @@
             localStorage.setItem("supabase_key", key);
 
             loadCredentialsUI();
-            toggleEditCredentials(false);
-            showToast("Credentials updated & locked!");
+            showToast("Credentials saved permanently in browser!");
             fetchMessages();
         }
 
@@ -658,6 +661,16 @@
         async function fetchMessages() {
             const supabaseUrl = getSupabaseUrl();
             const supabaseKey = getSupabaseKey();
+
+            if (!supabaseUrl || !supabaseKey) {
+                document.getElementById("messageList").innerHTML = `
+                <div class="empty-state">
+                    <i class="fa-solid fa-key" style="color:var(--accent-purple)"></i>
+                    <p>No Supabase Credentials Configured.<br><small style="color:var(--text-muted)">Please enter your Supabase URL & Key in the box above and click 'Save Credentials'.</small></p>
+                </div>
+            `;
+                return;
+            }
 
             try {
                 // Auto purge messages older than 7 days (7 * 24 * 60 * 60 * 1000 = 604800000 ms)
