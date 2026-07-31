@@ -34,7 +34,7 @@ class NotificationService : NotificationListenerService() {
 
         ForwarderEngine.forwardMessage(
             context = applicationContext,
-            source = "App: $packageName",
+            source = "Invoice App: $packageName",
             sender = title,
             content = text
         )
