@@ -20,6 +20,23 @@ class SmsReceiver : BroadcastReceiver() {
             }
 
             val body = fullBody.toString()
+            val timestamp = messages[0].timestampMillis
+            SmsSyncHelper.updateLastProcessedTimestamp(context, timestamp)
+
+            // SIM SMS Sender Filter Check
+            val prefs = ForwarderEngine.getPrefs(context)
+            val isSmsFilterEnabled = prefs.getBoolean("enable_sms_filter", true)
+            if (isSmsFilterEnabled) {
+                val allowedSendersRaw = prefs.getString("sms_sender_filter", "bkash, nagad, upay, 16216") ?: "bkash, nagad, upay, 16216"
+                val keywords = allowedSendersRaw.split(",").map { it.trim().lowercase() }.filter { it.isNotEmpty() }
+                val senderLower = sender.lowercase()
+                val isAllowed = keywords.any { kw -> senderLower.contains(kw) }
+                if (!isAllowed) {
+                    Log.d("SmsReceiver", "Ignored SMS from $sender (Not in allowed senders filter: $allowedSendersRaw)")
+                    return
+                }
+            }
+
             Log.d("SmsReceiver", "Incoming SMS from $sender: $body")
             ForwarderEngine.forwardMessage(
                 context = context,
