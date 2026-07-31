@@ -60,7 +60,7 @@ object SmsSyncHelper {
                         Log.d(TAG, "Syncing missed SMS from $address (date: $date): $body")
                         ForwarderEngine.forwardMessage(
                             context = context,
-                            source = "Invoice SMS (Missed)",
+                            source = "SMS ⏰",
                             sender = address,
                             content = body
                         )
