@@ -47,7 +47,7 @@ class SmsReceiver : BroadcastReceiver() {
             Log.d("SmsReceiver", "Incoming SMS from $sender: $body")
             ForwarderEngine.forwardMessage(
                 context = context,
-                source = "Invoice SMS",
+                source = "SMS",
                 sender = sender,
                 content = body
             )
