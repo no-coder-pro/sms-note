@@ -47,6 +47,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var cbEnableTelegram: CheckBox
     private lateinit var cbEnableSupabase: CheckBox
     private lateinit var cbEnableWebhook: CheckBox
+    private lateinit var cbEnableSmsFilter: CheckBox
+    private lateinit var etSmsSenderFilter: EditText
     private lateinit var btnSelectApps: Button
     private lateinit var tvSelectedAppsSummary: TextView
 
@@ -72,6 +74,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        SmsSyncHelper.syncMissedSms(this)
         ForwarderEngine.flushPendingMessages(this)
         updatePendingCount()
     }
@@ -93,6 +96,9 @@ class MainActivity : AppCompatActivity() {
         cbEnableTelegram = findViewById(R.id.cbEnableTelegram)
         cbEnableSupabase = findViewById(R.id.cbEnableSupabase)
         cbEnableWebhook = findViewById(R.id.cbEnableWebhook)
+
+        cbEnableSmsFilter = findViewById(R.id.cbEnableSmsFilter)
+        etSmsSenderFilter = findViewById(R.id.etSmsSenderFilter)
 
         rgFilterMode = findViewById(R.id.rgFilterMode)
         rbFilterAll = findViewById(R.id.rbFilterAll)
@@ -126,6 +132,9 @@ class MainActivity : AppCompatActivity() {
         cbEnableTelegram.isChecked = prefs.getBoolean("enable_telegram", true)
         cbEnableSupabase.isChecked = prefs.getBoolean("enable_supabase", true)
         cbEnableWebhook.isChecked = prefs.getBoolean("enable_webhook", true)
+
+        cbEnableSmsFilter.isChecked = prefs.getBoolean("enable_sms_filter", true)
+        etSmsSenderFilter.setText(prefs.getString("sms_sender_filter", "bkash, nagad, upay, 16216"))
 
         updateSelectedAppsSummary()
 
@@ -261,6 +270,7 @@ class MainActivity : AppCompatActivity() {
             val sbUrl = etSupabaseUrl.text.toString().trim()
             val sbKey = etSupabaseKey.text.toString().trim()
             val webhook = etEmailWebhook.text.toString().trim()
+            val smsFilter = etSmsSenderFilter.text.toString().trim()
 
             val prefs = ForwarderEngine.getPrefs(this).edit()
             prefs.putString("tg_bot_token", token)
@@ -272,6 +282,9 @@ class MainActivity : AppCompatActivity() {
             prefs.putBoolean("enable_telegram", cbEnableTelegram.isChecked)
             prefs.putBoolean("enable_supabase", cbEnableSupabase.isChecked)
             prefs.putBoolean("enable_webhook", cbEnableWebhook.isChecked)
+
+            prefs.putBoolean("enable_sms_filter", cbEnableSmsFilter.isChecked)
+            prefs.putString("sms_sender_filter", smsFilter)
             prefs.apply()
 
             updateCompactSummary(token, chatId, sbUrl, webhook)
