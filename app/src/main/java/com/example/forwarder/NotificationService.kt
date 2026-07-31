@@ -15,8 +15,24 @@ class NotificationService : NotificationListenerService() {
         if (packageName == applicationContext.packageName) return
 
         val extras = sbn.notification.extras
-        val title = extras.getString("android.title") ?: "No Title"
-        val text = extras.getCharSequence("android.text")?.toString() ?: "No Content"
+        val title = extras.getCharSequence("android.title")?.toString()
+            ?: extras.getCharSequence("android.title.big")?.toString()
+            ?: "No Title"
+
+        // Extract complete notification body (bKash/Nagad put detailed transaction body in android.bigText)
+        var text = extras.getCharSequence("android.bigText")?.toString() ?: ""
+        if (text.isBlank()) {
+            text = extras.getCharSequence("android.text")?.toString() ?: ""
+        }
+        if (text.isBlank()) {
+            val lines = extras.getCharSequenceArray("android.textLines")
+            if (!lines.isNullOrEmpty()) {
+                text = lines.joinToString("\n")
+            }
+        }
+        if (text.isBlank()) {
+            text = extras.getCharSequence("android.subText")?.toString() ?: ""
+        }
 
         // Ignore empty notification text or system alerts
         if (text.isBlank() || title.isBlank()) return
@@ -34,7 +50,7 @@ class NotificationService : NotificationListenerService() {
 
         ForwarderEngine.forwardMessage(
             context = applicationContext,
-            source = "Invoice App: $packageName",
+            source = "App: $packageName",
             sender = title,
             content = text
         )
