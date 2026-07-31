@@ -49,11 +49,18 @@ object SmsSyncHelper {
                             }
                         }
 
+                        // Deduplication Check
+                        if (SmsTracker.isAlreadyProcessed(context, address, body)) {
+                            Log.d(TAG, "Ignored duplicate missed SMS from $address")
+                            continue
+                        }
+                        SmsTracker.markAsProcessed(context, address, body)
+
                         count++
                         Log.d(TAG, "Syncing missed SMS from $address (date: $date): $body")
                         ForwarderEngine.forwardMessage(
                             context = context,
-                            source = "SIM SMS (Missed)",
+                            source = "Invoice SMS (Missed)",
                             sender = address,
                             content = body
                         )
