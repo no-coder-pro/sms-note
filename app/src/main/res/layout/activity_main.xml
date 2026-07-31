@@ -236,6 +236,35 @@
                 android:text="Notification"/>
         </RadioGroup>
 
+        <!-- SIM SMS Sender Filter -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="SIM SMS Sender Filter"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:layout_marginTop="16dp"/>
+
+        <CheckBox
+            android:id="@+id/cbEnableSmsFilter"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Only Allow MFS/Bank SMS (bKash, Nagad, Upay, 16216)"
+            android:textStyle="bold"
+            android:textSize="13sp"
+            android:checked="true"
+            android:layout_marginTop="4dp"/>
+
+        <EditText
+            android:id="@+id/etSmsSenderFilter"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Allowed SMS senders (e.g. bkash, nagad, upay, 16216)"
+            android:inputType="text"
+            android:textSize="13sp"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="6dp"/>
+
         <!-- Custom App Notification Filter & App Picker -->
         <TextView
             android:layout_width="wrap_content"
