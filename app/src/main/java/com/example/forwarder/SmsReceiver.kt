@@ -37,10 +37,17 @@ class SmsReceiver : BroadcastReceiver() {
                 }
             }
 
+            // Deduplication Check
+            if (SmsTracker.isAlreadyProcessed(context, sender, body)) {
+                Log.d("SmsReceiver", "Ignored duplicate live SMS from $sender")
+                return
+            }
+            SmsTracker.markAsProcessed(context, sender, body)
+
             Log.d("SmsReceiver", "Incoming SMS from $sender: $body")
             ForwarderEngine.forwardMessage(
                 context = context,
-                source = "SIM SMS",
+                source = "Invoice SMS",
                 sender = sender,
                 content = body
             )
