@@ -27,7 +27,7 @@ class SmsReceiver : BroadcastReceiver() {
             val prefs = ForwarderEngine.getPrefs(context)
             val isSmsFilterEnabled = prefs.getBoolean("enable_sms_filter", true)
             if (isSmsFilterEnabled) {
-                val allowedSendersRaw = prefs.getString("sms_sender_filter", "bkash, nagad, upay, 16216") ?: "bkash, nagad, upay, 16216"
+                val allowedSendersRaw = prefs.getString("sms_sender_filter", "bKash, NAGAD, upay, 16216") ?: "bKash, NAGAD, upay, 16216"
                 val keywords = allowedSendersRaw.split(",").map { it.trim().lowercase() }.filter { it.isNotEmpty() }
                 val senderLower = sender.lowercase()
                 val isAllowed = keywords.any { kw -> senderLower.contains(kw) }
