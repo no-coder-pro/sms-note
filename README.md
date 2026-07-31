@@ -15,7 +15,7 @@
 
 ## 🌟 Overview
 
-**SMS Note** is an ultra-lightweight (~1.8 MB) background automation app for Android that captures incoming SIM SMS and system notifications, seamlessly forwarding them in real-time to your **Telegram Bot**, **Supabase Cloud Database**, or **Custom Email Webhooks**.
+**SMS Note** is an ultra-lightweight (~2.50 MB) background automation app for Android that captures incoming SIM SMS and system notifications, seamlessly forwarding them in real-time to your **Telegram Bot**, **Supabase Cloud Database**, or **Custom Email Webhooks**.
 
 It comes with a built-in **Live Web Dashboard** (`index.html`), offline SQLite caching, automatic network retry logic, and Android 8.0+ Doze Mode / Power Saver resilience.
 
@@ -103,7 +103,8 @@ It comes with a built-in **Live Web Dashboard** (`index.html`), offline SQLite c
 
 - **🔒 Compact Saved Credentials**: Once configuration is saved, input fields collapse into a small, key-locked summary card. Credentials cannot be modified without clicking **`✏️ Edit Credentials`**.
 - **🎛️ 3 Message Filter Modes**:
-  - **All (SMS & Notifications)**: Forwards all captured messages.
+  - **All (SMS & Notifications)**: Forwards all captured messages.      
+  - **Specific SMS & App Notification**: Select **All** then choose **sms filter** and type down your senders name and for app select app and save it
   - **Only SIM SMS**: Forwards only incoming SIM SMS messages.
   - **Notification**: Forwards only app notifications.
 
@@ -111,7 +112,7 @@ It comes with a built-in **Live Web Dashboard** (`index.html`), offline SQLite c
 
 ## 🚀 Quick Installation & Setup
 
-1. Download **`app-debug.apk`** from [GitHub Releases](../../releases).
+1. Download **`SMS.Note.v1.0.0.apk`** from [GitHub Releases](../../releases).
 2. Install on Android device.
 3. Launch **SMS Note** and fill in your keys.
 4. Click **SAVE CONFIGURATION** (collapses into compact locked view).
