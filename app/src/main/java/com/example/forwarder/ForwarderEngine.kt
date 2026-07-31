@@ -106,7 +106,7 @@ object ForwarderEngine {
         val enableSb = prefs.getBoolean("enable_supabase", true)
         val enableWh = prefs.getBoolean("enable_webhook", true)
 
-        val formattedMessage = "📱 *[$source]*\n👤 *From:* $sender\n💬 *Message:* $content"
+        val formattedMessage = "📱 $source\n👤 *From:* $sender\n💬 *Message:* $content"
 
         var telegramSuccess = true
         var supabaseSuccess = true
