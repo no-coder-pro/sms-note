@@ -133,7 +133,7 @@ class MainActivity : AppCompatActivity() {
         cbEnableSupabase.isChecked = prefs.getBoolean("enable_supabase", true)
         cbEnableWebhook.isChecked = prefs.getBoolean("enable_webhook", true)
 
-        cbEnableSmsFilter.isChecked = prefs.getBoolean("enable_sms_filter", true)
+        cbEnableSmsFilter.isChecked = prefs.getBoolean("enable_sms_filter", false)
         etSmsSenderFilter.setText(prefs.getString("sms_sender_filter", "bKash, NAGAD, upay, 16216"))
 
         updateSelectedAppsSummary()
