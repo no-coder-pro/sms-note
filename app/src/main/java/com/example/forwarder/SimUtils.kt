@@ -15,7 +15,7 @@ object SimUtils {
                 return if (slotId >= 0) "SIM ${slotId + 1}" else if (subId >= 0) "SIM ${subId + 1}" else "SIM"
             }
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LPOLLIPOP_MR1) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
                 val sm = context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE) as? SubscriptionManager
                 val activeList = sm?.activeSubscriptionInfoList
                 if (!activeList.isNullOrEmpty()) {
