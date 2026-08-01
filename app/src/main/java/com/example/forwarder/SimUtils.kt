@@ -65,7 +65,7 @@ object SimUtils {
                             if (line1.isNotBlank()) return line1
                         } catch (_: Exception) {}
 
-                        val customNum = if (info.simSlotIndex == 0) sim1CustomNum else if (info.simSlotIndex == 1) sim2CustomNum else sim1CustomNum
+                        val customNum = if (info.simSlotIndex == 0) sim1CustomNum else sim2CustomNum
                         if (customNum.isNotBlank()) return customNum
 
                         val carrier = info.displayName?.toString()?.trim() ?: ""
@@ -76,15 +76,13 @@ object SimUtils {
 
             if (slotId == 0 && sim1CustomNum.isNotBlank()) return sim1CustomNum
             if (slotId == 1 && sim2CustomNum.isNotBlank()) return sim2CustomNum
-            if (subId == 1 && sim1CustomNum.isNotBlank()) return sim1CustomNum
-            if (subId == 2 && sim2CustomNum.isNotBlank()) return sim2CustomNum
 
-            if (sim1CustomNum.isNotBlank() && sim2CustomNum.isBlank()) return sim1CustomNum
+            if (sim1CustomNum.isNotBlank()) return sim1CustomNum
 
         } catch (e: Exception) {
             // Fallback gracefully
         }
 
-        return if (slotId >= 0) "SIM ${slotId + 1}" else if (subId >= 0) "SIM ${subId + 1}" else "SIM 1"
+        return if (sim1CustomNum.isNotBlank()) sim1CustomNum else "SIM 1"
     }
 }
