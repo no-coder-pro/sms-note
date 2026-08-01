@@ -10,10 +10,13 @@ import androidx.core.content.ContextCompat
 object SimUtils {
 
     fun getSimLabel(context: Context, subId: Int = -1, slotId: Int = -1): String {
+        var sim1CustomNum = ""
+        var sim2CustomNum = ""
+
         try {
             val prefs = ForwarderEngine.getPrefs(context)
-            val sim1CustomNum = prefs.getString("sim_1_number", "")?.trim() ?: ""
-            val sim2CustomNum = prefs.getString("sim_2_number", "")?.trim() ?: ""
+            sim1CustomNum = prefs.getString("sim_1_number", "")?.trim() ?: ""
+            sim2CustomNum = prefs.getString("sim_2_number", "")?.trim() ?: ""
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1 &&
                 ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
