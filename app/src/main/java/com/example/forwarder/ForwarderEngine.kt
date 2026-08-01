@@ -27,11 +27,10 @@ object ForwarderEngine {
             val network = connectivityManager.activeNetwork ?: return false
             val caps = connectivityManager.getNetworkCapabilities(network) ?: return false
             val hasInternet = caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-            val isValidated = caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
             val hasTransport = caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
                     caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ||
                     caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)
-            return hasTransport && hasInternet && isValidated
+            return hasTransport && hasInternet
         } else {
             @Suppress("DEPRECATION")
             val networkInfo = connectivityManager.activeNetworkInfo
@@ -94,36 +93,47 @@ object ForwarderEngine {
         }
     }
 
+    private fun escapeHtml(text: String): String {
+        return text.replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+    }
+
     private fun processSend(context: Context, source: String, sender: String, content: String): Boolean {
         val prefs = getPrefs(context)
-        val botToken = prefs.getString("tg_bot_token", "") ?: ""
-        val chatId = prefs.getString("tg_chat_id", "") ?: ""
-        val supabaseUrl = prefs.getString("supabase_url", "") ?: ""
-        val supabaseKey = prefs.getString("supabase_key", "") ?: ""
-        val emailWebhook = prefs.getString("email_webhook", "") ?: ""
+        val botToken = prefs.getString("tg_bot_token", "")?.trim() ?: ""
+        val chatId = prefs.getString("tg_chat_id", "")?.trim() ?: ""
+        val supabaseUrl = prefs.getString("supabase_url", "")?.trim() ?: ""
+        val supabaseKey = prefs.getString("supabase_key", "")?.trim() ?: ""
+        val emailWebhook = prefs.getString("email_webhook", "")?.trim() ?: ""
 
-        val enableTg = prefs.getBoolean("enable_telegram", true)
-        val enableSb = prefs.getBoolean("enable_supabase", true)
-        val enableWh = prefs.getBoolean("enable_webhook", true)
+        val enableTg = prefs.getBoolean("enable_telegram", true) && botToken.isNotBlank() && chatId.isNotBlank()
+        val enableSb = prefs.getBoolean("enable_supabase", true) && supabaseUrl.isNotBlank() && supabaseKey.isNotBlank()
+        val enableWh = prefs.getBoolean("enable_webhook", true) && emailWebhook.isNotBlank()
 
-        val formattedMessage = "📱 $source\n👤 *From:* $sender\n💬 *Message:* $content"
+        if (!enableTg && !enableSb && !enableWh) {
+            Log.w(TAG, "No forwarding destinations are configured or enabled!")
+            return false
+        }
+
+        val formattedMessage = "<b>📱 ${escapeHtml(source)}</b>\n<b>👤 From:</b> ${escapeHtml(sender)}\n<b>💬 Message:</b> ${escapeHtml(content)}"
 
         var telegramSuccess = true
         var supabaseSuccess = true
         var webhookSuccess = true
 
         // 1. Send to Telegram
-        if (enableTg && botToken.isNotBlank() && chatId.isNotBlank()) {
+        if (enableTg) {
             telegramSuccess = sendTelegram(botToken, chatId, formattedMessage)
         }
 
         // 2. Send to Supabase
-        if (enableSb && supabaseUrl.isNotBlank() && supabaseKey.isNotBlank()) {
+        if (enableSb) {
             supabaseSuccess = sendSupabase(supabaseUrl, supabaseKey, source, sender, content)
         }
 
         // 3. Send to Webhook
-        if (enableWh && emailWebhook.isNotBlank()) {
+        if (enableWh) {
             webhookSuccess = sendWebhook(emailWebhook, source, sender, content)
         }
 
@@ -144,7 +154,7 @@ object ForwarderEngine {
             val jsonParam = JSONObject()
             jsonParam.put("chat_id", chatId)
             jsonParam.put("text", text)
-            jsonParam.put("parse_mode", "Markdown")
+            jsonParam.put("parse_mode", "HTML")
 
             val os: OutputStream = conn.outputStream
             os.write(jsonParam.toString().toByteArray(Charsets.UTF_8))
