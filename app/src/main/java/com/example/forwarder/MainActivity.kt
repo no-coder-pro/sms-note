@@ -37,6 +37,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var etSupabaseUrl: EditText
     private lateinit var etSupabaseKey: EditText
     private lateinit var etEmailWebhook: EditText
+    private lateinit var etSim1Number: EditText
+    private lateinit var etSim2Number: EditText
     private lateinit var btnSaveConfig: Button
 
     private lateinit var rgFilterMode: RadioGroup
@@ -91,6 +93,8 @@ class MainActivity : AppCompatActivity() {
         etSupabaseUrl = findViewById(R.id.etSupabaseUrl)
         etSupabaseKey = findViewById(R.id.etSupabaseKey)
         etEmailWebhook = findViewById(R.id.etEmailWebhook)
+        etSim1Number = findViewById(R.id.etSim1Number)
+        etSim2Number = findViewById(R.id.etSim2Number)
         btnSaveConfig = findViewById(R.id.btnSaveConfig)
 
         cbEnableTelegram = findViewById(R.id.cbEnableTelegram)
@@ -123,11 +127,16 @@ class MainActivity : AppCompatActivity() {
         val supabaseKey = prefs.getString("supabase_key", "") ?: ""
         val emailWebhook = prefs.getString("email_webhook", "") ?: ""
 
+        val sim1Num = prefs.getString("sim_1_number", "") ?: ""
+        val sim2Num = prefs.getString("sim_2_number", "") ?: ""
+
         etTgBotToken.setText(tgToken)
         etTgChatId.setText(tgChatId)
         etSupabaseUrl.setText(supabaseUrl)
         etSupabaseKey.setText(supabaseKey)
         etEmailWebhook.setText(emailWebhook)
+        etSim1Number.setText(sim1Num)
+        etSim2Number.setText(sim2Num)
 
         cbEnableTelegram.isChecked = prefs.getBoolean("enable_telegram", true)
         cbEnableSupabase.isChecked = prefs.getBoolean("enable_supabase", true)
@@ -270,6 +279,8 @@ class MainActivity : AppCompatActivity() {
             val sbUrl = etSupabaseUrl.text.toString().trim()
             val sbKey = etSupabaseKey.text.toString().trim()
             val webhook = etEmailWebhook.text.toString().trim()
+            val sim1 = etSim1Number.text.toString().trim()
+            val sim2 = etSim2Number.text.toString().trim()
             val smsFilter = etSmsSenderFilter.text.toString().trim()
 
             val prefs = ForwarderEngine.getPrefs(this).edit()
@@ -278,6 +289,8 @@ class MainActivity : AppCompatActivity() {
             prefs.putString("supabase_url", sbUrl)
             prefs.putString("supabase_key", sbKey)
             prefs.putString("email_webhook", webhook)
+            prefs.putString("sim_1_number", sim1)
+            prefs.putString("sim_2_number", sim2)
 
             prefs.putBoolean("enable_telegram", cbEnableTelegram.isChecked)
             prefs.putBoolean("enable_supabase", cbEnableSupabase.isChecked)
@@ -358,6 +371,9 @@ class MainActivity : AppCompatActivity() {
             Manifest.permission.READ_SMS,
             Manifest.permission.READ_PHONE_STATE
         )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            permissions.add(Manifest.permission.READ_PHONE_NUMBERS)
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             permissions.add(Manifest.permission.POST_NOTIFICATIONS)
         }
