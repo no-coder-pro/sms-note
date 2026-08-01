@@ -43,7 +43,7 @@ object ForwarderEngine {
         executor.execute {
             val prefs = getPrefs(context)
             val filterMode = prefs.getString("filter_mode", "ALL") ?: "ALL"
-            val isSms = source.contains("SMS", ignoreCase = true)
+            val isSms = !source.startsWith("App:", ignoreCase = true)
 
             if (filterMode == "SMS_ONLY" && !isSms) {
                 Log.d(TAG, "Filter mode [$filterMode]: Ignored non-SMS message from $source")
