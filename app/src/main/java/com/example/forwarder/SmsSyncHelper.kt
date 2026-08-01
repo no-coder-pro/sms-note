@@ -16,7 +16,7 @@ object SmsSyncHelper {
         try {
             val contentResolver = context.contentResolver
             val uri = Uri.parse("content://sms/inbox")
-            val projection = arrayOf("_id", "address", "body", "date")
+            val projection = arrayOf("_id", "address", "body", "date", "sub_id", "sim_id", "subscription")
             val selection = "date > ?"
             val selectionArgs = arrayOf(lastTimestamp.toString())
             val sortOrder = "date ASC"
@@ -58,10 +58,12 @@ object SmsSyncHelper {
                         }
                         SmsTracker.markAsProcessed(context, address, body)
 
-                        val subIdIndex = it.getColumnIndex("sub_id")
+                        val subIdIndex = it.getColumnIndex("sub_id").takeIf { idx -> idx != -1 }
+                            ?: it.getColumnIndex("sim_id").takeIf { idx -> idx != -1 }
+                            ?: it.getColumnIndex("subscription").takeIf { idx -> idx != -1 } ?: -1
                         val subId = if (subIdIndex != -1) it.getInt(subIdIndex) else -1
                         val simLabel = SimUtils.getSimLabel(context, subId = subId)
-                        val sourceTag = "Number: $simLabel ⏰"
+                        val sourceTag = "Number: $simLabel"
 
                         count++
                         Log.d(TAG, "Syncing missed SMS from $address on $simLabel (date: $date): $body")
