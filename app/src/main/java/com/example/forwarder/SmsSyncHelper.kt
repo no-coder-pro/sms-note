@@ -37,15 +37,17 @@ object SmsSyncHelper {
                     }
 
                     if (body.isNotBlank()) {
-                        val isSmsFilterEnabled = prefs.getBoolean("enable_sms_filter", true)
+                        val isSmsFilterEnabled = prefs.getBoolean("enable_sms_filter", false)
                         if (isSmsFilterEnabled) {
                             val allowedSendersRaw = prefs.getString("sms_sender_filter", "bKash, NAGAD, upay, 16216") ?: "bKash, NAGAD, upay, 16216"
                             val keywords = allowedSendersRaw.split(",").map { it.trim().lowercase() }.filter { it.isNotEmpty() }
-                            val addressLower = address.lowercase()
-                            val isAllowed = keywords.any { kw -> addressLower.contains(kw) }
-                            if (!isAllowed) {
-                                Log.d(TAG, "Ignored missed SMS from $address (Not in allowed senders filter)")
-                                continue
+                            if (keywords.isNotEmpty() && !keywords.contains("*")) {
+                                val addressLower = address.lowercase()
+                                val isAllowed = keywords.any { kw -> addressLower.contains(kw) }
+                                if (!isAllowed) {
+                                    Log.d(TAG, "Ignored missed SMS from $address (Not in allowed senders filter)")
+                                    continue
+                                }
                             }
                         }
 
