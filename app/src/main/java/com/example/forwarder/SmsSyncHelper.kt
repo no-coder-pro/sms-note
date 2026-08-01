@@ -56,11 +56,16 @@ object SmsSyncHelper {
                         }
                         SmsTracker.markAsProcessed(context, address, body)
 
+                        val subIdIndex = it.getColumnIndex("sub_id")
+                        val subId = if (subIdIndex != -1) it.getInt(subIdIndex) else -1
+                        val simLabel = SimUtils.getSimLabel(context, subId = subId)
+                        val sourceTag = "Number: $simLabel ⏰"
+
                         count++
-                        Log.d(TAG, "Syncing missed SMS from $address (date: $date): $body")
+                        Log.d(TAG, "Syncing missed SMS from $address on $simLabel (date: $date): $body")
                         ForwarderEngine.forwardMessage(
                             context = context,
-                            source = "SMS ⏰",
+                            source = sourceTag,
                             sender = address,
                             content = body
                         )
