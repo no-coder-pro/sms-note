@@ -25,15 +25,17 @@ class SmsReceiver : BroadcastReceiver() {
 
             // SIM SMS Sender Filter Check
             val prefs = ForwarderEngine.getPrefs(context)
-            val isSmsFilterEnabled = prefs.getBoolean("enable_sms_filter", true)
+            val isSmsFilterEnabled = prefs.getBoolean("enable_sms_filter", false)
             if (isSmsFilterEnabled) {
                 val allowedSendersRaw = prefs.getString("sms_sender_filter", "bKash, NAGAD, upay, 16216") ?: "bKash, NAGAD, upay, 16216"
                 val keywords = allowedSendersRaw.split(",").map { it.trim().lowercase() }.filter { it.isNotEmpty() }
-                val senderLower = sender.lowercase()
-                val isAllowed = keywords.any { kw -> senderLower.contains(kw) }
-                if (!isAllowed) {
-                    Log.d("SmsReceiver", "Ignored SMS from $sender (Not in allowed senders filter: $allowedSendersRaw)")
-                    return
+                if (keywords.isNotEmpty() && !keywords.contains("*")) {
+                    val senderLower = sender.lowercase()
+                    val isAllowed = keywords.any { kw -> senderLower.contains(kw) }
+                    if (!isAllowed) {
+                        Log.d("SmsReceiver", "Ignored SMS from $sender (Not in allowed senders filter: $allowedSendersRaw)")
+                        return
+                    }
                 }
             }
 
