@@ -44,10 +44,19 @@ class SmsReceiver : BroadcastReceiver() {
             }
             SmsTracker.markAsProcessed(context, sender, body)
 
-            Log.d("SmsReceiver", "Incoming SMS from $sender: $body")
+            // Extract SIM Subscription / Slot details
+            val subId = intent.extras?.getInt("subscription", -1)?.takeIf { it != -1 }
+                ?: intent.extras?.getInt("sub_id", -1)?.takeIf { it != -1 } ?: -1
+            val slotId = intent.extras?.getInt("slot", -1)?.takeIf { it != -1 }
+                ?: intent.extras?.getInt("simId", -1)?.takeIf { it != -1 } ?: -1
+
+            val simLabel = SimUtils.getSimLabel(context, subId, slotId)
+            val sourceTag = "Number: $simLabel"
+
+            Log.d("SmsReceiver", "Incoming SMS from $sender on $simLabel: $body")
             ForwarderEngine.forwardMessage(
                 context = context,
-                source = "SMS",
+                source = sourceTag,
                 sender = sender,
                 content = body
             )
